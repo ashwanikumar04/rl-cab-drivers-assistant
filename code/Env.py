@@ -42,10 +42,23 @@ class CabDriver():
         return state_encod
 
     # Use this function if you are using architecture-2
-    # def state_encod_arch2(self, state, action):
-    #     """convert the (state-action) into a vector so that it can be fed to the NN. This method converts a given state-action pair into a vector format. Hint: The vector is of size m + t + d + m + m."""
+    def state_encod_arch2(self, state, action):
+        """convert the (state-action) into a vector so that it can be fed to the NN. This method converts a given state-action pair into a vector format. Hint: The vector is of size m + t + d + m + m."""
+        state_encod = np.zeros(m+t+d+m+m)
+        state_encod.reshape(1, m+t+d+m+m)
 
-    #     return state_encod
+        location, time, day = state
+        pick_up, drop = action
+
+        # Encode state
+        state_encod[location] = 1
+        state_encod[m + time] = 1
+        state_encod[m + t + day] = 1
+
+        # Encode action
+        state_encod[m + t + d + pick_up] = 1
+        state_encod[m + t + d + m + drop] = 1
+        return state_encod
 
     # Getting number of requests
 
