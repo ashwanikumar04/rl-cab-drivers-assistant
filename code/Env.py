@@ -42,7 +42,7 @@ class CabDriver():
         return state_encod
 
     # Use this function if you are using architecture-2
-    def state_encod_arch2(self, state, action):
+    def state_encod_state_and_action(self, state, action):
         """convert the (state-action) into a vector so that it can be fed to the NN. This method converts a given state-action pair into a vector format. Hint: The vector is of size m + t + d + m + m."""
         state_encod = np.zeros(m+t+d+m+m)
         state_encod.reshape(1, m+t+d+m+m)
