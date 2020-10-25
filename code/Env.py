@@ -98,7 +98,7 @@ class CabDriver():
         updated_time, updated_day = updated_time_and_day(time, day, ride_time)
         return ride_time, updated_time, updated_day
 
-    def reward(self, state, action, Time_matrix):
+    def get_reward(self, state, action, Time_matrix):
         """Takes in state, action and Time-matrix and returns the reward"""
         # 𝑅𝑘∗(𝑇𝑖𝑚𝑒(𝑝,𝑞))−𝐶𝑓∗(𝑇𝑖𝑚𝑒(𝑝,𝑞)+𝑇𝑖𝑚𝑒(𝑖,𝑝))
         location, time, day = state
@@ -121,7 +121,7 @@ class CabDriver():
 
         return reward
 
-    def next_state(self, state, action, Time_matrix):
+    def get_next_state(self, state, action, Time_matrix):
         """Takes state and action as input and returns next state"""
         location, time, day = state
         pick_up, drop = action
