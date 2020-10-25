@@ -62,7 +62,7 @@ class CabDriver():
 
     # Getting number of requests
 
-    def requests(self, state):
+    def get_requests(self, state):
         """Determining the number of requests basis the location.
         Use the table specified in the MDP and complete for rest of the locations"""
         location, time, day = state
