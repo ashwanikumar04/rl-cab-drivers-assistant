@@ -110,11 +110,11 @@ class CabDriver():
         else:
             if location != pick_up:
                 # when reaching from current location to pickup, the time of the day and day of the week can change
-                ride_time, updated_time, updated_day = self.updated_time_and_day_from_location(location, pick_up,
-                                                                                               time, day, Time_matrix)
+                ride_time_to_pickup, updated_time, updated_day = self.updated_time_and_day_from_location(location, pick_up,
+                                                                                                         time, day, Time_matrix)
 
                 reward = R*Time_matrix[pick_up, drop, updated_time, updated_day]-C*(
-                    Time_matrix[pick_up, drop, updated_time, updated_day]+ride_time)
+                    Time_matrix[pick_up, drop, updated_time, updated_day]+ride_time_to_pickup)
             else:
                 reward = R*Time_matrix[pick_up, drop, time, day] - \
                     C*Time_matrix[pick_up, drop, time, day]
