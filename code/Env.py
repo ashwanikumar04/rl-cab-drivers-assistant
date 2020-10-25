@@ -18,46 +18,27 @@ class CabDriver():
     def __init__(self):
         """initialise your state and define your action space and state space"""
         # (1,2) (1,3)
-        self.action_space = [(0, 0)]+[(p, q) for p in range(m)
+        self.action_space = [[0, 0]]+[[p, q] for p in range(m)
                                       for q in range(m) if p != q]
-        self.state_space = [(xi, tj, dk) for xi in range(m)
+        self.state_space = [[xi, tj, dk] for xi in range(m)
                             for tj in range(t) for dk in range(d)]
         self.state_init = random.choice(self.state_space)
 
         # Start the first round
         self.reset()
-
         self.action_space_size = len(self.action_space)
+        self.state_size = m + t + d
         self.total_time = 0
 
     # Encoding state (or state-action) for NN input
-
-    def state_encod_arch1(self, state):
+    # As per the course, this is Architecture-2
+    def encode_state(self, state):
         """convert the state into a vector so that it can be fed to the NN. This method converts a given state into a vector format. Hint: The vector is of size m + t + d."""
-        state_encod = np.zeros((m + t + d))
+        state_encod = np.zeros((self.state_size))
         location, time, day = state
         state_encod[location] = 1
-        state_encod[m + time] = 1
-        state_encod[m + t + day] = 1
-        return state_encod
-
-    # Use this function if you are using architecture-2
-    def state_encod_state_and_action(self, state, action):
-        """convert the (state-action) into a vector so that it can be fed to the NN. This method converts a given state-action pair into a vector format. Hint: The vector is of size m + t + d + m + m."""
-        state_encod = np.zeros(m+t+d+m+m)
-        state_encod.reshape(1, m+t+d+m+m)
-
-        location, time, day = state
-        pick_up, drop = action
-
-        # Encode state
-        state_encod[location] = 1
-        state_encod[m + time] = 1
-        state_encod[m + t + day] = 1
-
-        # Encode action
-        state_encod[m + t + d + pick_up] = 1
-        state_encod[m + t + d + m + drop] = 1
+        state_encod[m + np.int(time)] = 1
+        state_encod[m + t + np.int(day)] = 1
         return state_encod
 
     # Getting number of requests
@@ -81,6 +62,7 @@ class CabDriver():
         # (0,0) is not considered as customer request
         possible_actions_index = random.sample(
             range(1, self.action_space_size), requests)
+
         actions = [self.action_space[i] for i in possible_actions_index]
 
         # (0,0) is an allowed action which can be taken by the driver
@@ -94,8 +76,10 @@ class CabDriver():
         return updated_time, updated_day
 
     def updated_time_and_day_from_location(self, from_location, to_location, time, day, Time_matrix):
-        ride_time = Time_matrix[from_location, to_location, time, day]
-        updated_time, updated_day = updated_time_and_day(time, day, ride_time)
+        ride_time = Time_matrix[from_location,
+                                to_location, int(time), int(day)]
+        updated_time, updated_day = self.updated_time_and_day(
+            time, day, ride_time)
         return ride_time, updated_time, updated_day
 
     def get_reward(self, state, action, Time_matrix):
@@ -113,8 +97,8 @@ class CabDriver():
                 ride_time_to_pickup, updated_time, updated_day = self.updated_time_and_day_from_location(location, pick_up,
                                                                                                          time, day, Time_matrix)
 
-                reward = R*Time_matrix[pick_up, drop, updated_time, updated_day]-C*(
-                    Time_matrix[pick_up, drop, updated_time, updated_day]+ride_time_to_pickup)
+                reward = R*Time_matrix[pick_up, drop, int(updated_time), int(updated_day)]-C*(
+                    Time_matrix[pick_up, drop, int(updated_time), int(updated_day)]+ride_time_to_pickup)
             else:
                 reward = R*Time_matrix[pick_up, drop, time, day] - \
                     C*Time_matrix[pick_up, drop, time, day]
@@ -134,18 +118,18 @@ class CabDriver():
                                                                                                         time, day, Time_matrix)
 
             time_spent_after_pick_up = Time_matrix[pick_up,
-                                                   drop, updated_time, updated_day]
+                                                   drop, int(updated_time), int(updated_day)]
             self.total_time = self.total_time + \
                 ride_time_till_pick_up+time_spent_after_pick_up
 
             next_time, next_day = self.updated_time_and_day(
                 updated_time, updated_day, time_spent_after_pick_up)
 
-        is_finished = self.total_time < MAX_TIME
+        is_finished = self.total_time >= MAX_TIME
         if is_finished:
             self.total_time = 0
 
-        return (drop, next_time, next_day), is_finished
+        return [drop, np.int(next_time), np.int(next_day)], is_finished
 
     def reset(self):
         return self.action_space, self.state_space, self.state_init

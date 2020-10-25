@@ -9,7 +9,15 @@ import random
 
 print(23//24)
 
+t = 24
+d = 7
+
+action_space = [(0, 0)]+[(p, q) for p in range(m)
+                                for q in range(m) if p != q]
+state_space = [(xi, tj, dk) for xi in range(m)
+                    for tj in range(t) for dk in range(d)]
 
 
+print(len(action_space))
 
 
