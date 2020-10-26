@@ -37,8 +37,8 @@ class CabDriver():
         state_encod = np.zeros((self.state_size))
         location, time, day = state
         state_encod[location] = 1
-        state_encod[m + np.int(time)] = 1
-        state_encod[m + t + np.int(day)] = 1
+        state_encod[m + time] = 1
+        state_encod[m + t + day] = 1
         return state_encod
 
     # Getting number of requests
@@ -73,11 +73,11 @@ class CabDriver():
     def updated_time_and_day(self, time, day, ride_time):
         updated_time = (time+ride_time) % t
         updated_day = (day + (time+ride_time)//t) % d
-        return updated_time, updated_day
+        return int(updated_time), int(updated_day)
 
     def updated_time_and_day_from_location(self, from_location, to_location, time, day, Time_matrix):
         ride_time = Time_matrix[from_location,
-                                to_location, int(time), int(day)]
+                                to_location, time, day]
         updated_time, updated_day = self.updated_time_and_day(
             time, day, ride_time)
         return ride_time, updated_time, updated_day
@@ -97,8 +97,8 @@ class CabDriver():
                 ride_time_to_pickup, updated_time, updated_day = self.updated_time_and_day_from_location(location, pick_up,
                                                                                                          time, day, Time_matrix)
 
-                reward = R*Time_matrix[pick_up, drop, int(updated_time), int(updated_day)]-C*(
-                    Time_matrix[pick_up, drop, int(updated_time), int(updated_day)]+ride_time_to_pickup)
+                reward = R*Time_matrix[pick_up, drop, updated_time, updated_day]-C*(
+                    Time_matrix[pick_up, drop, updated_time, updated_day]+ride_time_to_pickup)
             else:
                 reward = R*Time_matrix[pick_up, drop, time, day] - \
                     C*Time_matrix[pick_up, drop, time, day]
@@ -110,7 +110,9 @@ class CabDriver():
         location, time, day = state
         pick_up, drop = action
 
+        total_time = 0
         if pick_up == 0 and drop == 0:
+            total_time = min(self.total_time, self.total_time + 1)
             self.total_time = self.total_time + 1
             next_time, next_day = self.updated_time_and_day(time, day, 1)
         else:
@@ -118,7 +120,11 @@ class CabDriver():
                                                                                                         time, day, Time_matrix)
 
             time_spent_after_pick_up = Time_matrix[pick_up,
-                                                   drop, int(updated_time), int(updated_day)]
+                                                   drop, updated_time, updated_day]
+
+            total_time = min(self.total_time, self.total_time +
+                             ride_time_till_pick_up+time_spent_after_pick_up)
+
             self.total_time = self.total_time + \
                 ride_time_till_pick_up+time_spent_after_pick_up
 
@@ -126,10 +132,11 @@ class CabDriver():
                 updated_time, updated_day, time_spent_after_pick_up)
 
         is_finished = self.total_time >= MAX_TIME
+
         if is_finished:
             self.total_time = 0
 
-        return [drop, np.int(next_time), np.int(next_day)], is_finished
+        return [drop, next_time, next_day], is_finished, total_time
 
     def reset(self):
         return self.action_space, self.state_space, self.state_init
