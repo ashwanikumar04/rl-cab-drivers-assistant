@@ -71,11 +71,14 @@ class CabDriver():
         return possible_actions_index, actions
 
     def updated_time_and_day(self, time, day, ride_time):
+        """This method returns updated time and day based on the ride time."""
         updated_time = (time+ride_time) % t
         updated_day = (day + (time+ride_time)//t) % d
         return int(updated_time), int(updated_day)
 
     def updated_time_and_day_from_location(self, from_location, to_location, time, day, Time_matrix):
+        """This method returns updated time and day based on from and to location of the ride."""
+
         ride_time = Time_matrix[from_location,
                                 to_location, time, day]
         updated_time, updated_day = self.updated_time_and_day(
@@ -92,6 +95,7 @@ class CabDriver():
         if pick_up == 0 and drop == 0:
             reward = -C
         else:
+            # when the pick up and the cab location is different, the cab driver has to reach the pick up location to start the ride
             if location != pick_up:
                 # when reaching from current location to pickup, the time of the day and day of the week can change
                 ride_time_to_pickup, updated_time, updated_day = self.updated_time_and_day_from_location(location, pick_up,
@@ -111,6 +115,7 @@ class CabDriver():
         pick_up, drop = action
 
         total_time = 0
+        # driver did not take the request
         if pick_up == 0 and drop == 0:
             total_time = min(self.total_time, self.total_time + 1)
             self.total_time = self.total_time + 1
